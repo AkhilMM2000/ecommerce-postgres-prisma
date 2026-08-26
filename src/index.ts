@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { env } from "./config/env";
 
 const app = express();
 
@@ -10,8 +11,8 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-const PORT = 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+app.listen(env.PORT, () => {
+  console.log(`Server running on port ${env.PORT}`);
 });
