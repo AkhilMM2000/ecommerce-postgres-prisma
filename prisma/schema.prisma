@@ -13,7 +13,8 @@ model User {
   id      Int      @id @default(autoincrement())
   name    String
   email   String   @unique
-  address Address? // ? = optional — a user may not have an address yet
+  address Address? // one-to-one (optional — user may not have an address)
+  orders  Order[]  // one-to-many ([] = array = one user can have many orders)
 }
 
 // ─── Address (One-to-One with User) ───────────────────────────────────────────
@@ -32,4 +33,38 @@ model Address {
 
   userId Int    @unique // @unique = this address belongs to exactly one user
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── OrderStatus Enum ─────────────────────────────────────────────────────────
+//
+// An enum means the column can only hold one of these exact values.
+// PostgreSQL enforces this — inserting 'INVALID' will throw an error.
+// Prisma maps this to a native PostgreSQL ENUM type.
+//
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ─── Order (One-to-Many from User) ────────────────────────────────────────────
+//
+// One-to-many = userId has NO @unique.
+// Many Order rows can share the same userId.
+// One user → many orders. One order → one user.
+//
+// Compare with Address:
+//   Address.userId has @unique    → one-to-one
+//   Order.userId   has no @unique → one-to-many
+//
+model Order {
+  id        Int         @id @default(autoincrement())
+  total     Decimal     @db.Decimal(10, 2) // exact decimal — never use Float for money
+  status    OrderStatus @default(PENDING)   // uses the enum above
+  createdAt DateTime    @default(now())     // auto timestamp when row is created
+
+  userId Int  // no @unique = one user can have MANY orders
+  user   User @relation(fields: [userId], references: [id])
 }
