@@ -7,11 +7,29 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── User ─────────────────────────────────────────────────────────────────────
+
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+  id      Int      @id @default(autoincrement())
+  name    String
+  email   String   @unique
+  address Address? // ? = optional — a user may not have an address yet
 }
 
+// ─── Address (One-to-One with User) ───────────────────────────────────────────
+//
+// One-to-one is created by putting @unique on the foreign key (userId).
+// @unique ensures only ONE Address row can have userId = X.
+// Without @unique on userId, this would be one-to-many.
+//
+model Address {
+  id      Int    @id @default(autoincrement())
+  street  String
+  city    String
+  state   String
+  country String
+  zipCode String
 
-
+  userId Int    @unique // @unique = this address belongs to exactly one user
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
