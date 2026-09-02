@@ -68,3 +68,33 @@ model Order {
   userId Int  // no @unique = one user can have MANY orders
   user   User @relation(fields: [userId], references: [id])
 }
+
+// ─── Category (One-to-Many with Product) ──────────────────────────────────────
+//
+// One Category has many Products.
+// One Product belongs to exactly one Category.
+//
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique // category names must be unique (Electronics, Clothing...)
+  products Product[]         // back-relation: one category has many products
+}
+
+// ─── Product (belongs to Category) ────────────────────────────────────────────
+//
+// New concepts in this model:
+//   String?   → nullable column (NULL allowed in PostgreSQL)
+//   Decimal   → exact decimal, not approximate float (important for prices)
+//   @default  → column gets this value automatically if not provided
+//
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?  // ? = optional, maps to TEXT (nullable) in PostgreSQL
+  price       Decimal  @db.Decimal(10, 2) // exact — never Float for money
+  stock       Int      @default(0)        // new products start at 0 stock
+  createdAt   DateTime @default(now())
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+}
