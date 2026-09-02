@@ -67,6 +67,7 @@ model Order {
 
   userId Int  // no @unique = one user can have MANY orders
   user   User @relation(fields: [userId], references: [id])
+   items  OrderItem[] // back-relation: one order has many line items
 }
 
 // ─── Category (One-to-Many with Product) ──────────────────────────────────────
@@ -97,4 +98,31 @@ model Product {
 
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[] // back-relation: one product can appear in many orders
+}
+
+
+// ─── OrderItem (Line item joining Order and Product) ─────────────────────────
+//
+// Represents an item within an order.
+// Many-to-many between Order and Product broken into two one-to-many relations:
+//   One Order has many OrderItems.
+//   One Product has many OrderItems.
+//
+// Key Concepts:
+//   price     → snapshot of product price at purchase time (prices can change later)
+//   quantity  → number of units purchased
+//   onDelete: Cascade on Order → deleting an order purges its line items
+//   Product relation (default RESTRICT) → prevents deleting a product with order history
+//
+model OrderItem {
+  id       Int     @id @default(autoincrement())
+  quantity Int     @default(1)
+  price    Decimal @db.Decimal(10, 2)
+
+  orderId Int
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
 }
